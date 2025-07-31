@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register - MSI Order</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Materialize CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="container">
+
+  <h4>Register</h4>
+  <form id="register-form">
+    <div class="input-field">
+      <input type="text" id="name" required />
+      <label for="name">Full Name</label>
+    </div>
+
+    <div class="input-field">
+      <input type="email" id="email" required />
+      <label for="email">Email</label>
+    </div>
+
+    <div class="input-field">
+      <input type="password" id="password" required />
+      <label for="password">Password</label>
+    </div>
+
+    <button class="btn waves-effect waves-light" type="submit">
+      Register <i class="material-icons right">send</i>
+    </button>
+  </form>
+
+  <!-- Alert -->
+  <p id="message" style="margin-top: 20px;"></p>
+
+  <!-- Firebase & Script -->
+  <script type="module">
+    import { auth, db } from './firebase-config.js';
+    import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const form = document.getElementById('register-form');
+    const message = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        // 1. Buat akun auth
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // 2. Simpan ke Firestore
+        await setDoc(doc(db, "users", user.uid), {
+          name: name,
+          email: email,
+          role: "editor",  // default role
+          createdAt: serverTimestamp()
+        });
+
+        message.textContent = "Registrasi berhasil! Silakan login.";
+        message.style.color = "green";
+        form.reset();
+      } catch (error) {
+        message.textContent = "Error: " + error.message;
+        message.style.color = "red";
+      }
+    });
+  </script>
+
+  <!-- Materialize JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+</body>
+</html>
